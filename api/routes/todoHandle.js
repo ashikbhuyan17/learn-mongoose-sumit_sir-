@@ -24,7 +24,23 @@ router.get('/', async (req, res) => {
         })
 })
 
+// get a todo by id
+router.get('/:id', async (req, res) => {
+    await Todo.find({_id:req.params.id})
+    .exec((err, data) => {
+        if (err) {
+            res.status(500).json({
+                error: "there are a server side error."
+            })
+        }
+        if (data) {
+            res.status(200).json({
+                data: data
+            })
+        }
 
+    })
+})
 
 // post a todo
 router.post('/', async (req, res) => {
