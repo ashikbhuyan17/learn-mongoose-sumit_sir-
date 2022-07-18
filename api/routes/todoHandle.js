@@ -28,9 +28,11 @@ const Todo = new mongoose.model("Todo", todoSchema)
 //         })
 // })
 
+// callback function and async await eksathe use korthe hoi na, jekono ekta use korley hoi
 
-router.get('/', async (req, res) => {
-    await Todo.find({ status: "active" })
+// this is the call back function
+router.get('/', (req, res) => {
+    Todo.find({ status: "active" })
         .select({
             _id: 0,
             __v: 0,
@@ -55,27 +57,37 @@ router.get('/', async (req, res) => {
 
 // get a todo by id
 // Find the todo with the given `id`, or `null` if not found
+// this is the async await
 router.get('/:id', async (req, res) => {
-    await Todo.find({ _id: req.params.id })
-        .exec((err, data) => {
-            if (err) {
-                res.status(500).json({
-                    error: "there are a server side error."
-                })
-            }
-            if (data) {
-                res.status(200).json({
-                    data: data
-                })
-            }
-
+    try {
+        const data = await Todo.find({ _id: req.params.id })
+        res.status(200).json({
+            data: data
         })
+    } catch (error) {
+        res.status(500).json({
+            error: "there are a server side error."
+        })
+    }
+    // .exec((err, data) => {
+    //     if (err) {
+    //         res.status(500).json({
+    //             error: "there are a server side error."
+    //         })
+    //     }
+    //     if (data) {
+    //         res.status(200).json({
+    //             data: data
+    //         })
+    //     }
+
+    // })
 })
 
 
 // get todo and filter by status
-router.get('/:status', async (req, res) => {
-    await Todo.find({ status: req.params.status })
+router.get('/:status', (req, res) => {
+    Todo.find({ status: req.params.status })
         .exec((err, data) => {
             if (err) {
                 res.status(500).json({
@@ -93,8 +105,8 @@ router.get('/:status', async (req, res) => {
 
 
 // get todo and multiple filter by status,title
-router.get('/:status/:title', async (req, res) => {
-    await Todo.find({ status: req.params.status, title: req.params.title })
+router.get('/:status/:title', (req, res) => {
+    Todo.find({ status: req.params.status, title: req.params.title })
         .exec((err, data) => {
             if (err) {
                 res.status(500).json({
@@ -111,9 +123,9 @@ router.get('/:status/:title', async (req, res) => {
 })
 
 // post a todo
-router.post('/', async (req, res) => {
+router.post('/', (req, res) => {
     const newTodo = new Todo(req.body)
-    await newTodo.save((err) => {
+    newTodo.save((err) => {
         if (err) {
             res.status(500).json({
                 error: "there are a server side error."
@@ -133,8 +145,8 @@ router.post('/', async (req, res) => {
 
 
 // post multiple todo
-router.post('/all', async (req, res) => {
-    await Todo.insertMany(req.body, (err) => {
+router.post('/all', (req, res) => {
+    Todo.insertMany(req.body, (err) => {
         if (err) {
             res.status(500).json({
                 error: "there are a server side error."
@@ -167,9 +179,9 @@ router.post('/all', async (req, res) => {
 //     })
 // })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', (req, res) => {
     const id = req.params.id
-    await Todo.findByIdAndUpdate({ _id: id }, {
+    Todo.findByIdAndUpdate({ _id: id }, {
         $set: {
             status: 'active'
         }
@@ -200,9 +212,9 @@ router.put('/:id', async (req, res) => {
 // })
 
 // delete a todo
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', (req, res) => {
     const id = req.params.id
-    await Todo.deleteOne({ _id: id }, (err) => {
+    Todo.deleteOne({ _id: id }, (err) => {
         if (err) {
             res.status(500).json({
                 error: "there are a server side error."
@@ -217,9 +229,9 @@ router.delete('/:id', async (req, res) => {
 })
 
 // delete multiple todo
-router.delete('/', async (req, res) => {
+router.delete('/', (req, res) => {
     const id = req.params.id
-    await Todo.deleteMany({ status: "active" }, (err) => {
+    Todo.deleteMany({ status: "active" }, (err) => {
         if (err) {
             res.status(500).json({
                 error: "there are a server side error."
