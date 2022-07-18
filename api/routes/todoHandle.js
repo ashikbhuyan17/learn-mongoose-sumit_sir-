@@ -216,7 +216,22 @@ router.delete('/:id', async (req, res) => {
 
 })
 
+// delete multiple todo
+router.delete('/', async (req, res) => {
+    const id = req.params.id
+    await Todo.deleteMany({ status: "active" }, (err) => {
+        if (err) {
+            res.status(500).json({
+                error: "there are a server side error."
+            })
+        } else {
+            res.status(200).json({
+                message: "delete multiple todo successfully"
+            })
+        }
+    })
 
+})
 
 
 module.exports = router
