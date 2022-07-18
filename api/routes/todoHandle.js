@@ -6,6 +6,24 @@ const todoSchema = require('../models/todoSchema')
 const Todo = new mongoose.model("Todo", todoSchema)
 
 
+// get all the todo
+router.get('/', async (req, res) => {
+    await Todo.find({})
+        .exec((err, data) => {
+            if (err) {
+                res.status(500).json({
+                    error: "there are a server side error."
+                })
+            }
+            if (data) {
+                res.status(200).json({
+                    data: data
+                })
+            }
+
+        })
+})
+
 
 
 // post a todo
