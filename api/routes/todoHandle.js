@@ -7,28 +7,36 @@ const Todo = new mongoose.model("Todo", todoSchema)
 
 
 
-// get todo and filter by status
-router.get('/:status', async (req, res) => {
-    await Todo.find({status:req.params.status})
-        .exec((err, data) => {
-            if (err) {
-                res.status(500).json({
-                    error: "there are a server side error."
-                })
-            }
-            if (data) {
-                res.status(200).json({
-                    data: data
-                })
-            }
 
-        })
-})
 
 
 // get all the todo
+// router.get('/', async (req, res) => {
+//     await Todo.find({})
+//         .exec((err, data) => {
+//             if (err) {
+//                 res.status(500).json({
+//                     error: "there are a server side error."
+//                 })
+//             }
+//             if (data) {
+//                 res.status(200).json({
+//                     data: data
+//                 })
+//             }
+
+//         })
+// })
+
+
 router.get('/', async (req, res) => {
-    await Todo.find({})
+    await Todo.find({ status: "active" })
+        .select({
+            _id: 0,
+            __v: 0,
+            date: 0
+        })
+        .limit(3)
         .exec((err, data) => {
             if (err) {
                 res.status(500).json({
@@ -44,22 +52,62 @@ router.get('/', async (req, res) => {
         })
 })
 
-// get a todo by id
-router.get('/:id', async (req, res) => {
-    await Todo.find({_id:req.params.id})
-    .exec((err, data) => {
-        if (err) {
-            res.status(500).json({
-                error: "there are a server side error."
-            })
-        }
-        if (data) {
-            res.status(200).json({
-                data: data
-            })
-        }
 
-    })
+// get a todo by id
+// Find the todo with the given `id`, or `null` if not found
+router.get('/:id', async (req, res) => {
+    await Todo.find({ _id: req.params.id })
+        .exec((err, data) => {
+            if (err) {
+                res.status(500).json({
+                    error: "there are a server side error."
+                })
+            }
+            if (data) {
+                res.status(200).json({
+                    data: data
+                })
+            }
+
+        })
+})
+
+
+// get todo and filter by status
+router.get('/:status', async (req, res) => {
+    await Todo.find({ status: req.params.status })
+        .exec((err, data) => {
+            if (err) {
+                res.status(500).json({
+                    error: "there are a server side error."
+                })
+            }
+            if (data) {
+                res.status(200).json({
+                    data: data
+                })
+            }
+
+        })
+})
+
+
+// get todo and multiple filter by status,title
+router.get('/:status/:title', async (req, res) => {
+    await Todo.find({ status: req.params.status, title: req.params.title })
+        .exec((err, data) => {
+            if (err) {
+                res.status(500).json({
+                    error: "there are a server side error."
+                })
+            }
+            if (data) {
+                res.status(200).json({
+                    data: data
+                })
+            }
+
+        })
 })
 
 // post a todo
@@ -145,11 +193,11 @@ router.put('/:id', async (req, res) => {
 
 
 // multiple filter
-router.put('/:id', async (req, res) => {
-    const id = req.params.id
-    const status = req.params.status
-    await Todo.updateOne({ _id: id, status: status })
-})
+// router.put('/:id', async (req, res) => {
+//     const id = req.params.id
+//     const status = req.params.status
+//     await Todo.updateOne({ _id: id, status: status })
+// })
 
 // delete todo
 router.delete('/:id', async (req, res) => {
