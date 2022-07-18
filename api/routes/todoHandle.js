@@ -6,6 +6,26 @@ const todoSchema = require('../models/todoSchema')
 const Todo = new mongoose.model("Todo", todoSchema)
 
 
+
+// get todo and filter by status
+router.get('/:status', async (req, res) => {
+    await Todo.find({status:req.params.status})
+        .exec((err, data) => {
+            if (err) {
+                res.status(500).json({
+                    error: "there are a server side error."
+                })
+            }
+            if (data) {
+                res.status(200).json({
+                    data: data
+                })
+            }
+
+        })
+})
+
+
 // get all the todo
 router.get('/', async (req, res) => {
     await Todo.find({})
