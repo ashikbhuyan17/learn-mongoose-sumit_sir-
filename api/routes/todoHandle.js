@@ -60,7 +60,7 @@ router.get('/', (req, res) => {
 // this is the async await
 router.get('/:id', async (req, res) => {
     try {
-        const data = await Todo.find({ _id: req.params.id })
+        const data = await Todo.findOne({ _id: req.params.id })
         res.status(200).json({
             data: data
         })
