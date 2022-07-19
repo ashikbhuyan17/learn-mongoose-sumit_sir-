@@ -63,6 +63,44 @@ router.post("/login", async (req, res) => {
             "error": "Authetication failed!"
         });
     }
-});  
+});
+
+
+// router.get('/all', (req, res) => {
+//     User.find({})
+//         .populate('todos')
+//         .exec((err, data) => {
+//             if (err) {
+//                 res.status(500).json({
+//                     error: "there are a server side error."
+//                 })
+//             }
+//             if (data) {
+//                 console.log("data", data);
+//                 res.status(200).json({
+//                     data: data
+//                 })
+//             }
+//         })
+// })
+
+
+// GET ALL USERS
+router.get('/all', async (req, res) => {
+    try {
+        const users = await User.find({})
+            .populate("todos");
+
+        res.status(200).json({
+            data: users,
+            message: "Success"
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            message: "There was an error on the server side!"
+        });
+    }
+});
 
 module.exports = router;

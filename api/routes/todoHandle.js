@@ -3,36 +3,21 @@ const router = express.Router()
 const mongoose = require('mongoose')
 // const Todo = require('../models/todoSchema')
 const todoSchema = require('../models/todoSchema')
+const userSchema = require('../models/User.Model')
 const Todo = new mongoose.model("Todo", todoSchema)
+const User = new mongoose.model("User", userSchema)
 
+const checkLogin = require("../middlewares/checkLogin");
 
 
 
 
 
 // get all the todo
-// router.get('/', async (req, res) => {
-//     await Todo.find({})
-//         .exec((err, data) => {
-//             if (err) {
-//                 res.status(500).json({
-//                     error: "there are a server side error."
-//                 })
-//             }
-//             if (data) {
-//                 res.status(200).json({
-//                     data: data
-//                 })
-//             }
-
-//         })
-// })
-
-// callback function and async await eksathe use korthe hoi na, jekono ekta use korley hoi
-
-// this is the call back function
-router.get('/', (req, res) => {
-    Todo.find({ status: "active" })
+router.get('/', async (req, res) => {
+    await Todo.find({})
+        // .populate({ path: 'user', select: 'name' })
+        .populate("user", "name username -_id")
         .select({
             _id: 0,
             __v: 0,
@@ -53,6 +38,32 @@ router.get('/', (req, res) => {
 
         })
 })
+
+// callback function and async await eksathe use korthe hoi na, jekono ekta use korley hoi
+
+// this is the call back function
+// router.get('/', (req, res) => {
+//     Todo.find({ status: "active" })
+//         .select({
+//             _id: 0,
+//             __v: 0,
+//             date: 0
+//         })
+//         .limit(3)
+//         .exec((err, data) => {
+//             if (err) {
+//                 res.status(500).json({
+//                     error: "there are a server side error."
+//                 })
+//             }
+//             if (data) {
+//                 res.status(200).json({
+//                     data: data
+//                 })
+//             }
+
+//         })
+// })
 
 
 // get a todo by id
@@ -122,26 +133,36 @@ router.get('/:status/:title', (req, res) => {
         })
 })
 
-// post a todo
-router.post('/', (req, res) => {
-    const newTodo = new Todo(req.body)
-    newTodo.save((err) => {
-        if (err) {
-            res.status(500).json({
-                error: "there are a server side error."
-            })
-        } else {
-            res.status(201).json({
-                message: "todo was inserted successfully."
-            })
-        }
-        // if(data){
-        //     res.status(201).json({
-        //         message:"todo was inserted successfully."
-        //     })
-        // }
-    })
-})
+// POST A TODO
+router.post("/", checkLogin, async (req, res) => {
+    const newTodo = new Todo({
+        ...req.body,
+        user: req.userId
+    });
+
+    try {
+        const todo = await newTodo.save();
+
+        // ome user multiple todos
+        await User.updateOne({
+            _id: req.userId
+        }, {
+            $push: {
+                todos: todo._id
+            }
+        });
+
+        res.status(200).json({
+            message: "Todo was inserted successfully!",
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            error: "There was a server side error!",
+        });
+    }
+});
+
 
 
 // post multiple todo
