@@ -1,3 +1,9 @@
+
+# ekta todo ekjn user under e takbe => one to one relation with todo -> user
+# Ekjon user multiple todo upload korthe parbe => one to many relation
+
+
+
 # Basic-Setup-Rest-Api-Express
 ## For installation
 npm i express dotenv ejs mongoose multer cookie-parser express-validator jsonwebtoken bcrypt http-errors morgan cors
