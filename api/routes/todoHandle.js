@@ -116,10 +116,29 @@ router.get('/all', async (req, res) => {
 
 
     
+    // pagination
+    let total = await Todo.countDocuments(query);
+    console.log("total", total);
+    let page = (req.query.page) ? parseInt(req.query.page) : 1;
+    let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
+    let skip = (page - 1) * perPage;
+    query.push({
+        $skip: skip,
+    });
+    query.push({
+        $limit: perPage,
+    });
+
 
     let users = await Todo.aggregate(query)
     return res.status(200).json({
         data: users,
+        meta: {
+            total: total,
+            currentPage: page,
+            perPage: perPage,
+            totalPages: Math.ceil(total / perPage)
+        },
         message: "Success"
     });
 })
