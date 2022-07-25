@@ -52,8 +52,15 @@ router.get('/all', async (req, res) => {
                 as: "user"
             }
         },
+        // just show object format data
         { $unwind: '$user' },
-        { $project: { "_id": 1, "title": 1, "description": 1, "status": 1, "user._id": 1, "user.username": 1, "user.name": 1 } }
+
+        // which data i see
+        // { $project: { "_id": 1, "title": 1, "description": 1, "status": 1, "user._id": 1, "user.username": 1, "user.name": 1 } }
+
+        // which data i can't see
+        { $project: { "user.todos": 0, "user.password": 0, "user.__v": 0 } }
+
     ]
     if (req.query.keyword && req.query.keyword != '') {
         query.push({
