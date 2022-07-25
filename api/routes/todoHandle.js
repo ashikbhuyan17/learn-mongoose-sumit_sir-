@@ -42,105 +42,136 @@ router.get('/', async (req, res) => {
 
 
 router.get('/all', async (req, res) => {
-    let query = [
-        {
-            $lookup:
+    try {
+        let query = [
             {
-                from: "users",
-                localField: "user",
-                foreignField: "_id",
-                as: "user"
+                $lookup:
+                {
+                    from: "users",
+                    localField: "user",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            // just show object format data
+            { $unwind: '$user' },
+
+            // which data i see
+            // { $project: { "_id": 1, "title": 1, "description": 1, "status": 1, "user._id": 1, "user.username": 1, "user.name": 1 } }
+
+            // which data i can't see
+            // { $project: { "user.todos": 0, "user.password": 0, "user.__v": 0 } }
+
+        ]
+
+        query.push(
+            {
+                $project: {
+                    "date": 0,
+                    "user.todos": 0,
+                    "user.password": 0,
+                    "user.__v": 0
+                }
             }
-        },
-        // just show object format data
-        { $unwind: '$user' },
+        );
 
-        // which data i see
-        // { $project: { "_id": 1, "title": 1, "description": 1, "status": 1, "user._id": 1, "user.username": 1, "user.name": 1 } }
 
-        // which data i can't see
-        { $project: { "user.todos": 0, "user.password": 0, "user.__v": 0 } }
+        if (req.query.keyword && req.query.keyword != '') {
+            query.push({
+                $match: {
+                    $or: [
+                        {
+                            title: { $regex: req.query.keyword }
+                        },
+                        {
+                            'user.username': { $regex: req.query.keyword }
+                        }
+                    ]
+                }
+                // $match: { title: { $regex: req.query.keyword } }
+            })
+        }
 
-    ]
-    if (req.query.keyword && req.query.keyword != '') {
+        // multiple query
+        if ((req.query.status && req.query.status != '') && (req.query.username && req.query.username != '')) {
+            console.log(req.query.status, req.query.username);
+            query.push({
+                $match: {
+                    $and: [
+                        {
+                            status: { $regex: req.query.status }
+                        },
+                        {
+                            'user.username': { $regex: req.query.username }
+                        }
+                    ]
+                }
+                // $match: { title: { $regex: req.query.keyword } }
+            })
+        }
+
+        // query by status
+        if (req.query.status) {
+            query.push({
+                $match: {
+                    'status': req.query.status,
+                }
+            });
+        }
+
+        // query by user_id
+        if (req.query.user_id) {
+            query.push({
+                $match: {
+                    'user._id': mongoose.Types.ObjectId(req.query.user_id),
+                }
+            });
+        }
+
+        // sort by asc and desc
+        if (req.query.sortBy && req.query.sortOrder) {
+            var sort = {};
+            sort[req.query.sortBy] = (req.query.sortOrder == 'asc') ? 1 : -1;
+            query.push({
+                $sort: sort
+            });
+        } else {
+            query.push({
+                $sort: { createdAt: -1 }
+            });
+        }
+
+        // pagination
+        let total = await Todo.countDocuments(query);
+        console.log("total", total);
+        let page = (req.query.page) ? parseInt(req.query.page) : 1;
+        let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
+        let skip = (page - 1) * perPage;
         query.push({
-            $match: {
-                $or: [
-                    {
-                        title: { $regex: req.query.keyword }
-                    },
-                    {
-                        'user.username': { $regex: req.query.keyword }
-                    }
-                ]
-            }
-            // $match: { title: { $regex: req.query.keyword } }
+            $skip: skip,
+        });
+        query.push({
+            $limit: perPage,
+        });
+
+
+        let users = await Todo.aggregate(query)
+        return res.status(200).json({
+            data: users,
+            meta: {
+                total: total,
+                currentPage: page,
+                perPage: perPage,
+                totalPages: Math.ceil(total / perPage)
+            },
+            message: "Success"
+        });
+    } catch (error) {
+        return res.status(400).send({
+            message: error.message,
+            data: error
         })
     }
-
-    // multiple query
-    if ((req.query.status && req.query.status != '') && (req.query.username && req.query.username != '')) {
-        console.log(req.query.status, req.query.username);
-        query.push({
-            $match: {
-                $and: [
-                    {
-                        status: { $regex: req.query.status }
-                    },
-                    {
-                        'user.username': { $regex: req.query.username }
-                    }
-                ]
-            }
-            // $match: { title: { $regex: req.query.keyword } }
-        })
-    }
-
-    // query by status
-    if (req.query.status) {
-        query.push({
-            $match: {
-                'status': req.query.status,
-            }
-        });
-    }
-
-    // query by user_id
-    if (req.query.user_id) {
-        query.push({
-            $match: {
-                'user._id': mongoose.Types.ObjectId(req.query.user_id),
-            }
-        });
-    }
-
-
-    
-    // pagination
-    let total = await Todo.countDocuments(query);
-    console.log("total", total);
-    let page = (req.query.page) ? parseInt(req.query.page) : 1;
-    let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
-    let skip = (page - 1) * perPage;
-    query.push({
-        $skip: skip,
-    });
-    query.push({
-        $limit: perPage,
-    });
-
-
-    let users = await Todo.aggregate(query)
-    return res.status(200).json({
-        data: users,
-        meta: {
-            total: total,
-            currentPage: page,
-            perPage: perPage,
-            totalPages: Math.ceil(total / perPage)
-        },
-        message: "Success"
-    });
 })
 // callback function and async await eksathe use korthe hoi na, jekono ekta use korley hoi
 
