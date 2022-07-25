@@ -96,7 +96,7 @@ router.get('/all', async (req, res) => {
         })
     }
 
-    // 
+    // query by status
     if (req.query.status) {
         query.push({
             $match: {
