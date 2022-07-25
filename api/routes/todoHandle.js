@@ -105,6 +105,18 @@ router.get('/all', async (req, res) => {
         });
     }
 
+    // query by user_id
+    if (req.query.user_id) {
+        query.push({
+            $match: {
+                'user._id': mongoose.Types.ObjectId(req.query.user_id),
+            }
+        });
+    }
+
+
+    
+
     let users = await Todo.aggregate(query)
     return res.status(200).json({
         data: users,
