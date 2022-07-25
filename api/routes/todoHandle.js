@@ -39,6 +39,53 @@ router.get('/', async (req, res) => {
         })
 })
 
+
+
+router.get('/all', async (req, res) => {
+    let query = [
+        {
+            $lookup:
+            {
+                from: "users",
+                localField: "user",
+                foreignField: "_id",
+                as: "user"
+            }
+        },
+        { $unwind: '$user' },
+        { $project: { "_id": 1, "title": 1, "description": 1, "status": 1, "user._id": 1, "user.username": 1, "user.name": 1 } }
+    ]
+    if (req.query.keyword && req.query.keyword != '') {
+        query.push({
+            $match: {
+                $or: [
+                    {
+                        title: { $regex: req.query.keyword }
+                    },
+                    {
+                        'user.username': { $regex: req.query.keyword }
+                    }
+                ]
+            }
+            // $match: { title: { $regex: req.query.keyword } }
+        })
+    }
+
+    // 
+    if (req.query.status) {
+        query.push({
+            $match: {
+                'status': req.query.status,
+            }
+        });
+    }
+
+    let users = await Todo.aggregate(query)
+    return res.status(200).json({
+        data: users,
+        message: "Success"
+    });
+})
 // callback function and async await eksathe use korthe hoi na, jekono ekta use korley hoi
 
 // this is the call back function
@@ -143,7 +190,7 @@ router.post("/", checkLogin, async (req, res) => {
     try {
         const todo = await newTodo.save();
 
-        // ome user multiple todos
+        // one user multiple todos
         await User.updateOne({
             _id: req.userId
         }, {

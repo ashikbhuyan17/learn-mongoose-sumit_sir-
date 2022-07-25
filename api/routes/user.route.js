@@ -103,4 +103,25 @@ router.get('/all', async (req, res) => {
     }
 });
 
+
+router.get('/all/user', async (req, res) => {
+    let query = [
+        {
+            $lookup:
+            {
+                from: "todos",
+                localField: "todos",
+                foreignField: "_id",
+                as: "todos"
+            }
+        }
+    ]
+
+    let users = await User.aggregate(query)
+    return res.status(200).json({
+        data: users,
+        message: "Success"
+    });
+})
+
 module.exports = router;
