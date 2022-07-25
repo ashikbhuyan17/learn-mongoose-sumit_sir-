@@ -78,6 +78,24 @@ router.get('/all', async (req, res) => {
         })
     }
 
+    // multiple query
+    if ((req.query.status && req.query.status != '') && (req.query.username && req.query.username != '')) {
+        console.log(req.query.status, req.query.username);
+        query.push({
+            $match: {
+                $and: [
+                    {
+                        status: { $regex: req.query.status }
+                    },
+                    {
+                        'user.username': { $regex: req.query.username }
+                    }
+                ]
+            }
+            // $match: { title: { $regex: req.query.keyword } }
+        })
+    }
+
     // 
     if (req.query.status) {
         query.push({
