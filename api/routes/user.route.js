@@ -21,7 +21,7 @@ router.post("/signup", async (req, res) => {
         });
     } catch {
         res.status(500).json({
-            message: "Signup failed!",
+            err: "Username Already Exists",
         });
     }
 });

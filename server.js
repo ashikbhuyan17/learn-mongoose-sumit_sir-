@@ -42,8 +42,12 @@ app.get('/', (req, res) => res.send('Hello World!'))
 // import router
 const userRoute = require('./api/routes/user.route')
 const todoHandle = require('./api/routes/todoHandle')
+const articleRoute = require('./api/routes/article.routes')
+
 app.use('/user', userRoute)
 app.use('/todo', todoHandle)
+app.use('/article', articleRoute)
+
 
 
 
